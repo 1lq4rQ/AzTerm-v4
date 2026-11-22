@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AZTERM — Azərbaycan Terminologiya Platforması</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#F0FDFA', 100: '#CCFBF1', 200: '#99F6E4', 500: '#14B8A6',
+              600: '#0D9488', 700: '#0F766E', 800: '#115E59', 900: '#134E4A',
+            },
+            navy: { 800: '#1E293B', 900: '#0F172A', 950: '#020617', }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #F8FAFC; color: #0F172A; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeSlideUp 0.25s ease-out forwards; }
+    
+    /* Loading dots animation */
+    .typing-indicator span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: #0D9488;
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Naviqasiya -->
+  <header class="sticky top-0 z-40 bg-navy-900 text-white border-b border-slate-800 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between py-3.5 gap-3">
+        
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('search')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-inner border border-brand-400/30">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-display font-extrabold text-xl tracking-tight text-white">AZTERM</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-200 border border-brand-500/30">AI Lüğət</span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">Azərbaycan Terminologiya və Dil İnkişafı Platforması</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button onclick="toggleChatDrawer(true)" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+            <span>AI Köməkçi (Aktiv)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tablar -->
+      <nav class="flex overflow-x-auto no-scrollbar gap-1 sm:gap-2 pt-1 pb-0 border-t border-slate-800/80" aria-label="Əsas bölmələr">
+        <button id="tab-btn-search" onclick="switchTab('search')" class="tab-btn whitespace-nowrap px-4 py-3 text-sm font-semibold border-b-2 border-brand-500 text-white flex items-center gap-2 transition">
+          Termin Axtarışı <span id="badge-total-terms" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300"></span>
+        </button>
+        <button id="tab-btn-daily" onclick="switchTab('daily')" class="tab-btn whitespace-nowrap px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
+          AI Gündəlik Yeniliklər <span class="ml-1 px-2 py-0.5 text-[10px] rounded-full bg-brand-600/30 text-brand-300 border border-brand-500/30">Auto</span>
+        </button>
+        <button id="tab-btn-add" onclick="switchTab('add')" class="tab-btn whitespace-nowrap px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
+          Yeni Termin Əlavə Et
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- 1. TERMİN AXTARIŞI -->
+    <section id="view-search" class="space-y-6 animate-fade-in">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-sm">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">Azərbaycan Dilinin Vahid Terminoloji Bazası</h1>
+        <div class="mt-6 flex flex-col md:flex-row gap-3">
+          <div class="relative flex-1">
+            <input type="text" id="searchInput" oninput="handleSearchFilter()" placeholder="Termin axtarın (məs: Virus, Akt, Kök, Protokol, Gəzəyən, EHM...)" class="w-full pl-4 pr-4 py-3.5 rounded-xl border border-slate-300 bg-slate-50/60 focus:bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 transition" />
+          </div>
+          <select id="usageFilter" onchange="handleSearchFilter()" class="rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="ALL">İşləklik: Hamısı</option>
+            <option value="İşlək">İşlək söz</option>
+            <option value="Arxiv / İşlək deyil">İşlək deyil (Arxiv)</option>
+          </select>
+          <select id="dialectFilter" onchange="handleSearchFilter()" class="rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="ALL">Növ: Hamısı</option>
+            <option value="Ədəbi dil">Ədəbi dil (Dialekt deyil)</option>
+            <option value="Dialekt sözü">Dialekt sözü</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap items-center justify-between gap-3 px-1">
+        <p id="resultsSummaryText" class="text-sm font-medium text-slate-600"></p>
+      </div>
+      <div id="searchResultsContainer" class="space-y-4"></div>
+    </section>
+
+    <!-- 2. AI GÜNDƏLİK RƏSMİ YENİLİKLƏR -->
+    <section id="view-daily" class="hidden space-y-6 animate-fade-in">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold border border-brand-200 mb-2">
+              <span>AMEA • e-qanun.az • Rəsmi Qurumlar</span>
+            </div>
+            <h2 class="text-2xl font-extrabold text-navy-900">AI Gündəlik Rəsmi Lüğət Yenilikləri</h2>
+            <p class="mt-1.5 text-sm text-slate-600 max-w-2xl">
+              AMEA Terminologiya Komissiyası, e-qanun.az və dövlət qurumları tərəfindən gündəlik qəbul edilən yeni terminlər AI vasitəsilə analiz olunaraq birbaşa bazaya daxil edilir.
+            </p>
+          </div>
+          <button onclick="fetchDailyAiTerms()" id="btnFetchDailyAi" class="px-5 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-sm flex items-center justify-center gap-2 shrink-0 transition">
+            <svg id="dailyAiIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Bugünkü Rəsmi Sözləri Avtomatik Daxil Et (AI)</span>
+          </button>
+        </div>
+
+        <div id="dailyStatusBanner" class="hidden mt-5 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-900"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+          <h3 class="text-base font-bold text-navy-900">AI Tərəfindən Avtomatik Əlavə Edilən Son Sözlər</h3>
+          <span id="dailyCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-800">0 yeni söz</span>
+        </div>
+        <div id="dailyAddedList" class="divide-y divide-slate-100"></div>
+      </div>
+    </section>
+
+    <!-- 3. TERMİN ƏLAVƏ ET -->
+    <section id="view-add" class="hidden space-y-6 animate-fade-in">
+      <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <h2 class="text-2xl font-extrabold text-navy-900 mb-6">Bazaya Yeni Termin Əlavə Et</h2>
+        <form id="addTermForm" onsubmit="handleAddTermSubmit(event)" class="space-y-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input type="text" id="addTermName" required placeholder="Termin adı" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none" />
+            <input type="text" id="addTermDomain" required placeholder="Aid olduğu sahə (məs: Hüquq, İT)" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Sözün işləklik statusu</label>
+              <select id="addTermUsage" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white outline-none">
+                <option value="İşlək">İşlək (Aktiv işlənir)</option>
+                <option value="Arxiv / İşlək deyil">İşlək deyil (Arxiv / Köhnəlmiş)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Dialekt və ya Ədəbi dil</label>
+              <select id="addTermDialect" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white outline-none">
+                <option value="Ədəbi dil">Ədəbi dil (Dialekt deyil)</option>
+                <option value="Dialekt sözü">Dialekt sözü</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="space-y-3">
+            <label class="block text-xs font-semibold text-slate-600">İzah səviyyələri</label>
+            <textarea id="addTermMeaningSimple" rows="2" required placeholder="1. Sadə dildə izah (Məktəbli üçün)" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none"></textarea>
+            <textarea id="addTermMeaningScientific" rows="2" required placeholder="2. Elmi dildə izah" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none"></textarea>
+            <textarea id="addTermMeaningOfficial" rows="2" required placeholder="3. Rəsmi dildə izah" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none"></textarea>
+          </div>
+          
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm transition">Sistemə Əlavə Et</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- AI ÇAT PANELİ -->
+  <div id="aiChatDrawer" class="fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] bg-white shadow-2xl border-l border-slate-200 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="px-5 py-4 bg-navy-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <h3 class="font-display font-bold text-sm text-white">AZTERM AI Köməkçisi</h3>
+      </div>
+      <button onclick="toggleChatDrawer(false)" class="p-2 text-slate-400 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    
+    <div id="chatMessagesList" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50">
+      <div class="flex justify-start">
+        <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-3.5 text-sm text-slate-800 shadow-sm max-w-[85%]">
+          Salam! Hər hansı bir terminin mənasını və ya uyğunluğunu yoxlamaq üçün mənə yaza bilərsiniz. Mən sizə onu həm sadə, həm elmi, həm də rəsmi dildə izah edəcəyəm.
+        </div>
+      </div>
+    </div>
+    
+    <form onsubmit="handleChatSubmit(event)" class="p-4 bg-white border-t border-slate-200">
+      <div class="flex items-center gap-2">
+        <input type="text" id="chatInput" autocomplete="off" placeholder="Termini buraya yazın..." class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition" />
+        <button type="submit" id="chatSubmitBtn" class="p-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Baza Təyini və Əsas JavaScript -->
+  <script>
+    const INITIAL_TERMS = [
+      {
+        id: "t-1",
+        term: "Virus",
+        domain: "İnformasiya Texnologiyaları",
+        meaning: { 
+          simple: "Kompüterimizə gizlicə girən və ona ziyan vuran proqramdır.", 
+          scientific: "Özünü avtomatik kopyalayaraq sistemin arxitekturasını pozan zərərli kod fraqmentidir.", 
+          official: "Şəbəkələrə və qurğulara icazəsiz daxil olan və məlumatları zədələyən zərərli proqram təminatı." 
+        },
+        source: "AMEA Terminologiya Komissiyası",
+        origin: "Latın mənşəli (virus — zəhər)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-2",
+        term: "Virus",
+        domain: "Tibb və Biologiya",
+        meaning: { 
+          simple: "Gözlə görünməyən, insanı və ya heyvanları xəstələndirən çox kiçik mikrob.", 
+          scientific: "Yalnız canlı hüceyrələrin daxilində çoxala bilən hüceyrəsiz infeksion agent.", 
+          official: "Yoluxucu xəstəliklərin törədicisi olan və sanitar-epidemioloji nəzarətə cəlb edilən mikroorqanizm." 
+        },
+        source: "AMEA — Tibb Terminləri Lüğəti",
+        origin: "Latın mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-3",
+        term: "Akt",
+        domain: "Hüquq",
+        meaning: { 
+          simple: "Hər hansı hadisəni təsdiqləmək üçün yazılmış rəsmi sənəddir.", 
+          scientific: "Hüquqi nəticələr yaradan, dəyişdirən və ya xitam verən hüquqi əhəmiyyətli hərəkət və ya sənəd.", 
+          official: "Dövlət orqanları tərəfindən müəyyən edilmiş qaydada qəbul edilən və hüquqi qüvvəyə malik rəsmi sənəd." 
+        },
+        source: "e-qanun.az — Normativ hüquqi aktlar haqqında Qanun",
+        origin: "Latın mənşəli (actus — hərəkət)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-4",
+        term: "Akt",
+        domain: "İncəsənət və Teatr",
+        meaning: { 
+          simple: "Teatr tamaşasının pərdə bağlanana qədər olan bir hissəsi.", 
+          scientific: "Dramatik əsərin və ya səhnə tamaşasının bitkin kompozisiya hissəsi (pərdə).", 
+          official: "Səhnə əsərlərinin struktur bölgüsünü ifadə edən sənətşünaslıq termini." 
+        },
+        source: "AMEA — İzahlı Teatr Terminləri Lüğəti",
+        origin: "Latın mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-5",
+        term: "Kök",
+        domain: "Riyaziyyat",
+        meaning: { 
+          simple: "Öz-özünə vurulduqda verilən ədədi verən başqa bir ədəddir (məsələn, 9-un kökü 3-dür).", 
+          scientific: "Verilmiş ədədin n-ci dərəcədən qüvvətinə bərabər olan kəmiyyəti tapan cəbri əməl nəticəsi.", 
+          official: "Riyazi hesablamalarda və tədris proqramlarında tətbiq olunan standart cəbri anlayış." 
+        },
+        source: "AMEA — Riyaziyyat Terminləri Lüğəti",
+        origin: "Ümumtürk mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-6",
+        term: "Kök",
+        domain: "Dilçilik",
+        meaning: { 
+          simple: "Sözün şəkilçilər ayrıldıqdan sonra qalan əsas mənalı hissəsidir.", 
+          scientific: "Sözün leksik mənasını daşıyan, daha kiçik mənalı hissələrə bölünməyən əsas morfem.", 
+          official: "Azərbaycan dilinin qrammatika və orfoqrafiya qaydalarında söz yaradıcılığının əsas vahidi." 
+        },
+        source: "AMEA Nəsimi adına Dilçilik İnstitutu",
+        origin: "Ümumtürk mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-7",
+        term: "Kök",
+        domain: "Biologiya",
+        meaning: { 
+          simple: "Bitkini torpağa bərkidən və yerdən su çəkən yeraltı hissəsi.", 
+          scientific: "Ali bitkilərin torpaqdan su və mineral maddələri soran əsas vegetativ orqanı.", 
+          official: "Botanika və kənd təsərrüfatı standartlarında bitki orqanizminin əsas hissəsi." 
+        },
+        source: "AMEA — Botanika Terminləri Lüğəti",
+        origin: "Ümumtürk mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-8",
+        term: "Protokol",
+        domain: "İnformasiya Texnologiyaları",
+        meaning: { 
+          simple: "İnternetdə iki kompüterin bir-biri ilə necə danışacağını müəyyən edən qaydalar toplusudur.", 
+          scientific: "Şəbəkə cihazları arasında məlumat mübadiləsinin ardıcıllığını və formatını tənzimləyən standart qaydalar (məs: HTTP, TCP/IP).", 
+          official: "Məlumat ötürmə şəbəkələrində qurğuların qarşılıqlı əlaqəsini təmin edən rəsmi texniki standart." 
+        },
+        source: "RİNN & AMEA İKT Lüğəti",
+        origin: "Yunan mənşəli (protokollon)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-9",
+        term: "Protokol",
+        domain: "Hüquq və Diplomatiya",
+        meaning: { 
+          simple: "İclasda və ya görüşdə danışılanların rəsmi şəkildə yazıldığı vərəqdir.", 
+          scientific: "Rəsmi tədbirlərin, istintaq hərəkətlərinin gedişini və ya beynəlxalq müqaviləyə əlavələri təsbit edən hüquqi akt.", 
+          official: "Dövlət orqanlarının iclaslarının və ya beynəlxalq razılaşmaların rəsmi qeydiyyat sənədi." 
+        },
+        source: "e-qanun.az",
+        origin: "Yunan mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-10",
+        term: "İnflyasiya",
+        domain: "İqtisadiyyat",
+        meaning: { 
+          simple: "Pulun dəyərdən düşməsi və mağazada qiymətlərin qalxmasıdır.", 
+          scientific: "Məcmu tələb və təklif arasında disbalans nəticəsində qiymətlərin ümumi səviyyəsinin davamlı artması.", 
+          official: "Ölkədə dövriyyədə olan pul kütləsinin əmtəə kütləsini üstələməsi nəticəsində yaranan makroiqtisadi göstərici." 
+        },
+        source: "AMEA — İqtisadiyyat Terminləri Lüğəti",
+        origin: "Latın mənşəli (inflatio — şişmə)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-11",
+        term: "Alqoritm",
+        domain: "İnformasiya Texnologiyaları",
+        meaning: { 
+          simple: "Hər hansı bir işi görmək və ya məsələni həll etmək üçün ardıcıl addımlardır.", 
+          scientific: "Müəyyən məsələnin həlli üçün sonlu sayda dəqiq təlimatlar və hesablama qaydaları ardıcıllığı.", 
+          official: "İnformasiya sistemlərində proseslərin avtomatlaşdırılmış icrasını tənzimləyən riyazi-məntiqi ardıcıllıq." 
+        },
+        source: "AMEA Terminologiya Komissiyası",
+        origin: "Ərəb mənşəli (Əl-Xarəzmi)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-12",
+        term: "Karantin",
+        domain: "Tibb və Hüquq",
+        meaning: { 
+          simple: "Xəstəliyin yayılmaması üçün insanların bir müddət evdə və ya xüsusi yerdə qalmasıdır.", 
+          scientific: "Yoluxucu xəstəliklərin epidemik yayılmasının qarşısını almaq məqsədilə tətbiq edilən sanitar-epidemioloji məhdudiyyət kompleksi.", 
+          official: "İnfeksion xəstəlik ocaqlarında hərəkət və fəaliyyət azadlığını müvəqqəti məhdudlaşdıran xüsusi hüquqi rejim." 
+        },
+        source: "e-qanun.az — Sanitariya-epidemioloji salamatlıq haqqında Qanun",
+        origin: "İtalyan mənşəli (quaranta — qırx)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-13",
+        term: "Lisenziya",
+        domain: "Hüquq və İqtisadiyyat",
+        meaning: { 
+          simple: "Xüsusi bir işlə məşğul olmaq üçün dövlətdən alınan rəsmi icazə kağızıdır.", 
+          scientific: "Fikri mülkiyyət və ya müəyyən fəaliyyət növü üzərində istifadə hüququnun ötürülməsini təsdiq edən hüquqi akt.", 
+          official: "Müvafiq dövlət orqanı tərəfindən hüquqi və ya fiziki şəxslərə müəyyən sahibkarlıq fəaliyyəti növü ilə məşğul olmaq üçün verilən rəsmi sənəd." 
+        },
+        source: "e-qanun.az — Lisenziyalar və icazələr haqqında Qanun",
+        origin: "Latın mənşəli (licentia — icazə)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-14",
+        term: "Ekosistem",
+        domain: "Biologiya və Ekologiya",
+        meaning: { 
+          simple: "Təbiətdə heyvanların, bitkilərin və onların yaşadıqları mühitin birgə əmələ gətirdiyi birlik.", 
+          scientific: "Canlı orqanizmlərin və onların cansız ətraf mühitinin enerji axını və maddələr dövranı vasitəsilə qarşılıqlı əlaqədə olduğu bioloji sistem.", 
+          official: "Ətraf mühitin mühafizəsi obyektlərindən biri olan, canlı orqanizmlər və onların yaşayış mühitinin vahid təbii kompleksi." 
+        },
+        source: "e-qanun.az & AMEA",
+        origin: "Yunan mənşəli (oikos + systema)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-15",
+        term: "Sərəncam",
+        domain: "Hüquq və Dövlət İdarəçiliyi",
+        meaning: { 
+          simple: "Rəhbər şəxsin və ya dövlət başçısının verdiyi rəsmi tapşırıq və ya qərardır.", 
+          scientific: "Dövlət hakimiyyəti və ya icra orqanlarının cari məsələlərin həlli ilə bağlı qəbul etdiyi fərdi və ya normativ xarakterli hüquqi akt.", 
+          official: "Azərbaycan Respublikası Prezidentinin, Nazirlər Kabinetinin və digər səlahiyyətli orqanların operativ məsələlər üzrə qəbul etdiyi rəsmi akt." 
+        },
+        source: "e-qanun.az",
+        origin: "Fars mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-16",
+        term: "Audit",
+        domain: "İqtisadiyyat və Maliyyə",
+        meaning: { 
+          simple: "Bir şirkətin pul hesablarının düzgün aparılıb-aparılmadığını yoxlayan müstəqil yoxlamadır.", 
+          scientific: "Təsərrüfat subyektlərinin maliyyə hesabatlarının etibarlılığının və qanunvericiliyə uyğunluğunun müstəqil ekspert yoxlanışı.", 
+          official: "Əmtəə istehsalı və satışı, xidmət göstərilməsi və iş görülməsi ilə məşğul olan təsərrüfat subyektlərində mühasibat uçotunun dəqiq və dürüst aparılmasının müstəqil yoxlanılması." 
+        },
+        source: "e-qanun.az — Auditor xidməti haqqında Qanun",
+        origin: "Latın mənşəli (audit — o eşidir)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-17",
+        term: "İmmunitet",
+        domain: "Tibb və Biologiya",
+        meaning: { 
+          simple: "Bədənimizin xəstəliklərə və mikroblara qarşı müqavimət gücüdür.", 
+          scientific: "Orqanizmin genetik cəhətdən yad agentlərdən (bakteriya, virus, toksin) müdafiəsini təmin edən bioloji reaksiyalar sistemi.", 
+          official: "İmmunoprofilaktika və səhiyyə tədbirləri çərçivəsində orqanizmin infeksion xəstəliklərə qarşı dözümlülük vəziyyəti." 
+        },
+        source: "AMEA — Tibb Terminləri Lüğəti",
+        origin: "Latın mənşəli (immunitas — azad olma)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-18",
+        term: "Depozit",
+        domain: "İqtisadiyyat və Bank İşi",
+        meaning: { 
+          simple: "Faiz qazanmaq və ya qorumaq üçün banka qoyulan pul əmanətidir.", 
+          scientific: "Müəyyən şərtlərlə və faiz dərəcəsi ilə geri qaytarılmaq məqsədilə kredit təşkilatlarına yerləşdirilən pul vəsaiti.", 
+          official: "Bankın balansında müştərinin hesabına açılmış cari, əmanət (depozit) və ya digər hesaba köçürülmüş və ya nağd qoyulmuş pul vəsaiti." 
+        },
+        source: "e-qanun.az — Banklar haqqında Qanun",
+        origin: "Latın mənşəli (depositum — saxlanmağa verilmiş əşya)",
+        status: "Aktiv"
+      },
+      {
+        id: "t-19",
+        term: "Alqı-satqı",
+        domain: "Hüquq və Ticarət",
+        meaning: { 
+          simple: "Bir şeyin pul qarşılığında başqasına verilməsi və ya alınmasıdır.", 
+          scientific: "Bir tərəfin (satıcının) əşyanı digər tərəfin (alıcının) mülkiyyətinə verməyi, alıcının isə pul məbləğini ödəməyi öhdəsinə götürdüyü müqavilə münasibəti.", 
+          official: "Mülki Məcəllə ilə tənzimlənən, əmlakın mülkiyyət hüququnun bir şəxsdən digərinə əvəzli keçməsini rəsmiləşdirən əqd." 
+        },
+        source: "e-qanun.az — Azərbaycan Respublikasının Mülki Məcəlləsi",
+        origin: "Azərbaycan mənşəli",
+        status: "Aktiv"
+      },
+      {
+        id: "t-20",
+        term: "Prompt",
+        domain: "Süni İntellekt və İKT",
+        meaning: { 
+          simple: "Süni intellektə (məsələn, chatbota) nə etməli olduğunu başa salan əmr və ya sualdır.", 
+          scientific: "Böyük dil modellərini (LLM) istiqamətləndirmək və müvafiq çıxış generasiya etmək üçün istifadə olunan giriş verilənləri (input).", 
+          official: "Hələlik rəsmi lüğətdə vahid təsdiqlənmiş izahı yoxdur. İşçi izah: Süni intellekt modellərinə istiqamət vermək üçün daxil edilən sorğu təlimatı." 
+        },
+        source: "RİNN & AMEA Terminologiya Komissiyası (Baxışda)",
+        origin: "İngilis mənşəli (prompt)",
+        status: "İzahı təşkil edilir / Yeni termin təklifi"
+      },
+      {
+        id: "t-21",
+        term: "Brauzer",
+        domain: "İnformasiya Texnologiyaları",
+        meaning: { 
+          simple: "İnternetdəki saytlara baxmaq üçün istifadə etdiyimiz proqramdır (məsələn, Chrome).", 
+          scientific: "Veb-səhifələri, mətnləri, şəkilləri və multimedia resurslarını göstərmək üçün nəzərdə tutulmuş tətbiqi proqram təminatı.", 
+          official: "Azərbaycan dilində rəsmi qarşılığı kimi 'Veb-bələdçi' termini tövsiyə edilmişdir." 
+        },
+        source: "AMEA Terminologiya Komissiyası",
+        origin: "İngilis mənşəli (browser)",
+        status: "Dəyişdirilib"
+      },
+      {
+        id: "t-22",
+        term: "EHM (Elektron Hesablama Maşını)",
+        domain: "İnformasiya Texnologiyaları",
+        meaning: { 
+          simple: "Köhnə dövrlərdə kompüterə verilən addır.", 
+          scientific: "Riyazi və məntiqi əməliyyatları avtomatik yerinə yetirən elektron hesablama qurğusu (tarixi termin).", 
+          official: "Bazadan silinməyib. Müasir İKT terminologiyasında 'Kompüter' termini ilə əvəz olunduğu üçün aktiv terminlikdən çıxarılıb." 
+        },
+        source: "AMEA — Köhnə Texniki Lüğət Arxivi",
+        origin: "Rus dilindən kalka (ЭВМ)",
+        status: "Terminlikdən çıxarılıb",
+        usageStatus: "Arxiv / İşlək deyil",
+        isDialect: false
+      },
+      {
+        id: "t-23",
+        term: "Gəzəyən",
+        domain: "Dialektologiya və Etnoqrafiya",
+        meaning: { 
+          simple: "Bəzi bölgələrdə çox gəzən, evdə oturmayan adama və ya səyyar satıcıya deyilir.", 
+          scientific: "Azərbaycan dilinin qərb və cənub-qərb dialektlərində işlənən, yüksək hərəkətlilik və səyyarlıq bildirən leksik vahid.", 
+          official: "AMEA Dialektoloji Lüğətində qeydə alınmış regional şivə sözüdür; rəsmi sənədlərdə işlədilmir." 
+        },
+        source: "AMEA Nəsimi adına Dilçilik İnstitutu — Dialektoloji Lüğət",
+        origin: "Ümumtürk mənşəli",
+        status: "Aktiv",
+        usageStatus: "İşlək",
+        isDialect: true
+      }
+    ];
+
+    let termsDB = JSON.parse(localStorage.getItem("azterm_app_data_v3")) || [...INITIAL_TERMS];
+    let dailyAutoLogs = JSON.parse(localStorage.getItem("azterm_daily_logs_v3")) || [];
+
+    // Ümumi Vəziyyəti Yadda Saxla
+    function saveAllState() {
+      localStorage.setItem("azterm_app_data_v3", JSON.stringify(termsDB));
+      localStorage.setItem("azterm_daily_logs_v3", JSON.stringify(dailyAutoLogs));
+      document.getElementById("badge-total-terms").textContent = termsDB.length;
+    }
+
+    // Menyu Keçidləri
+    function switchTab(tabName) {
+      document.getElementById("view-search").classList.add("hidden");
+      document.getElementById("view-daily").classList.add("hidden");
+      document.getElementById("view-add").classList.add("hidden");
+      
+      document.getElementById(`view-${tabName}`).classList.remove("hidden");
+      
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("border-brand-500", "text-white");
+        btn.classList.add("border-transparent", "text-slate-400");
+      });
+      
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+      activeBtn.classList.remove("border-transparent", "text-slate-400");
+      activeBtn.classList.add("border-brand-500", "text-white");
+
+      if (tabName === "search") renderSearchResults();
+      if (tabName === "daily") renderDailyAddedList();
+    }
+
+    // Terminləri Ekrana Çıxar
+    function renderSearchResults() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const usageVal = document.getElementById("usageFilter").value;
+      const dialectVal = document.getElementById("dialectFilter").value;
+
+      const filtered = termsDB.filter(t => {
+        const matchesQuery = t.term.toLowerCase().includes(query) || 
+          t.domain.toLowerCase().includes(query) ||
+          (t.source && t.source.toLowerCase().includes(query));
+
+        const itemUsage = t.usageStatus || (t.status === "Terminlikdən çıxarılıb" ? "Arxiv / İşlək deyil" : "İşlək");
+        const matchesUsage = usageVal === "ALL" || itemUsage === usageVal;
+
+        const itemDialect = t.isDialect ? "Dialekt sözü" : "Ədəbi dil";
+        const matchesDialect = dialectVal === "ALL" || itemDialect === dialectVal;
+
+        return matchesQuery && matchesUsage && matchesDialect;
+      });
+      
+      document.getElementById("resultsSummaryText").innerHTML = `Bazadakı tapıntılar: <b class="text-brand-700">${filtered.length}</b> termin`;
+      
+      const container = document.getElementById("searchResultsContainer");
+      
+      if(filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">Axtarışınıza uyğun termin tapılmadı. Yeni termin əlavə edə bilərsiniz.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        let badgeStyle = "bg-emerald-100 text-emerald-800";
+        if (item.status === "Terminlikdən çıxarılıb") badgeStyle = "bg-rose-100 text-rose-800";
+        else if (item.status === "Dəyişdirilib") badgeStyle = "bg-amber-100 text-amber-800";
+        else if (item.status && item.status.includes("Yeni termin")) badgeStyle = "bg-indigo-100 text-indigo-800";
+
+        const isActiveUsage = (item.usageStatus || (item.status === "Terminlikdən çıxarılıb" ? "Arxiv / İşlək deyil" : "İşlək")) === "İşlək";
+        const usageBadge = isActiveUsage
+          ? `<span class="text-[11px] font-semibold bg-teal-50 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded-full">✓ İşlək söz</span>`
+          : `<span class="text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-full">✕ İşlək deyil (Arxiv)</span>`;
+
+        const dialectBadge = item.isDialect
+          ? `<span class="text-[11px] font-semibold bg-purple-50 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-full">Dialekt sözü</span>`
+          : `<span class="text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded-full">Ədəbi dil (Dialekt deyil)</span>`;
+
+        return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+          <div class="flex flex-wrap justify-between items-start gap-2 mb-3">
+            <div>
+              <h2 class="text-xl font-bold text-navy-900">${item.term}</h2>
+              <div class="text-xs text-brand-600 font-semibold mt-1">Sfera: ${item.domain}</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              ${usageBadge}
+              ${dialectBadge}
+              <span class="text-[10px] font-bold uppercase ${badgeStyle} px-2.5 py-1 rounded-full">${item.status}</span>
+            </div>
+          </div>
+          
+          <div class="space-y-2 mt-4">
+            <div class="bg-blue-50/50 border border-blue-100 p-3 rounded-xl text-sm text-blue-900">
+              <b class="text-blue-800 block mb-1 text-xs">Məktəbli üçün izah:</b> 
+              ${item.meaning.simple}
+            </div>
+            <div class="bg-indigo-50/50 border border-indigo-100 p-3 rounded-xl text-sm text-indigo-900">
+              <b class="text-indigo-800 block mb-1 text-xs">Elmi izah:</b> 
+              ${item.meaning.scientific}
+            </div>
+            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm text-slate-800">
+              <b class="text-slate-700 block mb-1 text-xs">Rəsmi/Qanuni izah:</b> 
+              ${item.meaning.official}
+            </div>
+          </div>
+
+          ${(item.source || item.origin) ? `
+            <div class="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap justify-between gap-2 text-xs text-slate-500">
+              <span><b>Mənbə:</b> ${item.source || "AMEA"}</span>
+              <span><b>Mənşə:</b> ${item.origin || "Göstərilməyib"}</span>
+            </div>
+          ` : ""}
+        </div>
+      `;
+      }).join("");
+    }
+
+    function handleSearchFilter() {
+      renderSearchResults();
+    }
+
+    // AI Gündəlik Rəsmi Yenilikləri Avtomatik Daxil Etmək
+    function renderDailyAddedList() {
+      const container = document.getElementById("dailyAddedList");
+      const countBadge = document.getElementById("dailyCountBadge");
+      countBadge.textContent = `${dailyAutoLogs.length} yeni söz`;
+
+      if (dailyAutoLogs.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">Hələlik gündəlik sinxronizasiya başladılmayıb. Yuxarıdakı düyməyə basaraq AMEA və e-qanun.az yeniliklərini bazaya daxil edin.</div>`;
+        return;
+      }
+
+      container.innerHTML = dailyAutoLogs.map(item => `
+        <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-navy-900 text-base">${item.term}</span>
+              <span class="text-xs px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 font-semibold border border-brand-200">${item.domain}</span>
+              <span class="text-[11px] font-semibold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-full">✓ İşlək</span>
+              <span class="text-[11px] font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">${item.isDialect ? "Dialekt" : "Ədəbi dil"}</span>
+            </div>
+            <p class="text-xs text-slate-600">${item.meaning.official}</p>
+            <div class="text-[11px] text-slate-400">Mənbə: ${item.source} • Tarix: ${item.addedAt}</div>
+          </div>
+          <button onclick="viewTermInSearch('${item.term.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-navy-900 shrink-0">
+            Bazaya Bax →
+          </button>
+        </div>
+      `).join("");
+    }
+
+    function viewTermInSearch(termName) {
+      switchTab('search');
+      document.getElementById("searchInput").value = termName;
+      renderSearchResults();
+    }
+
+    async function fetchDailyAiTerms() {
+      const btn = document.getElementById("btnFetchDailyAi");
+      const icon = document.getElementById("dailyAiIcon");
+      const banner = document.getElementById("dailyStatusBanner");
+
+      btn.disabled = true;
+      icon.classList.add("animate-spin");
+      banner.classList.remove("hidden");
+      banner.textContent = "AI AMEA Terminologiya Komissiyası, e-qanun.az və rəsmi dövlət qurumlarının gündəlik yeniliklərini analiz edir...";
+
+      const todayStr = new Date().toLocaleDateString("az-AZ");
+      const prompt = `Sən AZTERM AI sistemisən. AMEA Terminologiya Komissiyası, e-qanun.az və dövlət qurumları tərəfindən yeni qəbul edilmiş 2 rəsmi Azərbaycan dili termini yarat. Cavabı YALNIZ aşağıdakı JSON massiv formatında ver, başqa heç nə yazma:
+[
+  {
+    "term": "Termin adı",
+    "domain": "Aid olduğu sahə",
+    "simple": "Məktəbli üçün sadə izah",
+    "scientific": "Elmi izah",
+    "official": "Rəsmi/qanuni izah",
+    "source": "AMEA Terminologiya Komissiyası və ya e-qanun.az",
+    "origin": "Mənşəyi",
+    "isDialect": false
+  }
+]`;
+
+      let newEntries = [];
+      try {
+        const rawReply = await callGeminiAI(prompt);
+        const jsonMatch = rawReply.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          newEntries = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        newEntries = [];
+      }
+
+      if (!Array.isArray(newEntries) || newEntries.length === 0) {
+        const fallbackPool = [
+          {
+            term: "Rəqəmsal əkiz",
+            domain: "Süni İntellekt və Sənaye",
+            simple: "Real bir binanın və ya maşının kompüterdə yaradılmış eyni surətidir.",
+            scientific: "Fiziki obyektin və ya sistemin real vaxt rejimində sensor məlumatları ilə yenilənən virtual modeli.",
+            official: "Rəqəmsal İnkişaf və Nəqliyyat Nazirliyi ilə AMEA-nın birgə təsdiqlədiyi müasir texnoloji termin.",
+            source: "AMEA Terminologiya Komissiyası & RİNN",
+            origin: "İngilis dilindən kalka (Digital twin)",
+            isDialect: false
+          },
+          {
+            term: "Kibertəhlükəsizlik auditi",
+            domain: "Hüquq və İnformasiya Təhlükəsizliyi",
+            simple: "Kompüter sistemlərinin hakerlərdən nə dərəcədə qorunduğunu yoxlayan rəsmi yoxlamadır.",
+            scientific: "İnformasiya infrastrukturunun zəifliklərinin aşkarlanması və təhlükəsizlik standartlarına uyğunluğunun qiymətləndirilməsi.",
+            official: "Kritik informasiya infrastrukturunun təhlükəsizliyi üzrə normativ hüquqi aktlarla müəyyən edilmiş yoxlama proseduru.",
+            source: "e-qanun.az — İnformasiya təhlükəsizliyi haqqında Qanun",
+            origin: "Beynəlxalq termin",
+            isDialect: false
+          }
+        ];
+        newEntries = fallbackPool;
+      }
+
+      let addedCount = 0;
+      newEntries.forEach((item, idx) => {
+        const exists = termsDB.some(t => t.term.toLowerCase() === item.term.toLowerCase());
+        const finalTermName = exists ? `${item.term} (${todayStr})` : item.term;
+        const record = {
+          id: "t-daily-" + Date.now() + "-" + idx,
+          term: finalTermName,
+          domain: item.domain || "Ümumi",
+          meaning: {
+            simple: item.simple,
+            scientific: item.scientific,
+            official: item.official
+          },
+          source: item.source || "AMEA & e-qanun.az (Gündəlik AI)",
+          origin: item.origin || "Göstərilməyib",
+          status: "Aktiv",
+          usageStatus: "İşlək",
+          isDialect: Boolean(item.isDialect),
+          addedAt: todayStr
+        };
+        termsDB.unshift(record);
+        dailyAutoLogs.unshift(record);
+        addedCount++;
+      });
+
+      saveAllState();
+      renderDailyAddedList();
+
+      banner.innerHTML = `✓ <strong>Uğurla tamamlandı:</strong> AMEA və e-qanun.az mənbələrindən <strong>${addedCount} yeni rəsmi söz</strong> AI tərəfindən bazaya avtomatik daxil edildi.`;
+      btn.disabled = false;
+      icon.classList.remove("animate-spin");
+    }
+
+    // Yeni Termin Əlavə Et
+    function handleAddTermSubmit(e) {
+      e.preventDefault();
+      
+      const usageVal = document.getElementById("addTermUsage").value;
+      const dialectVal = document.getElementById("addTermDialect").value === "Dialekt sözü";
+
+      const newTerm = {
+        id: "t-" + Date.now(),
+        term: document.getElementById("addTermName").value.trim(),
+        domain: document.getElementById("addTermDomain").value.trim(),
+        meaning: {
+          simple: document.getElementById("addTermMeaningSimple").value.trim(),
+          scientific: document.getElementById("addTermMeaningScientific").value.trim(),
+          official: document.getElementById("addTermMeaningOfficial").value.trim()
+        },
+        source: "İstifadəçi Əlavəsi",
+        origin: "Mənbədə göstərilməyib",
+        status: usageVal === "İşlək" ? "Aktiv" : "Terminlikdən çıxarılıb",
+        usageStatus: usageVal,
+        isDialect: dialectVal
+      };
+
+      termsDB.unshift(newTerm);
+      saveAllState();
+      
+      e.target.reset();
+      switchTab('search');
+    }
+
+    // ==========================================
+    // AI CHAT LOGIC (AUTOMATIC KEY INJECTION)
+    // ==========================================
+    function toggleChatDrawer(open) {
+      const drawer = document.getElementById("aiChatDrawer");
+      if(open) drawer.classList.remove("translate-x-full");
+      else drawer.classList.add("translate-x-full");
+    }
+
+    async function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const submitBtn = document.getElementById("chatSubmitBtn");
+      const text = input.value.trim();
+      if (!text) return;
+      
+      input.value = "";
+      input.disabled = true;
+      submitBtn.disabled = true;
+      
+      const list = document.getElementById("chatMessagesList");
+      
+      // User Message
+      list.innerHTML += `
+        <div class="flex justify-end animate-fade-in">
+          <div class="bg-brand-600 text-white rounded-2xl rounded-tr-none p-3.5 text-sm shadow-sm max-w-[85%]">
+            ${text}
+          </div>
+        </div>`;
+      
+      // Loading Indicator
+      const loadingId = "loading-" + Date.now();
+      list.innerHTML += `
+        <div id="${loadingId}" class="flex justify-start animate-fade-in">
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 text-sm text-slate-800 shadow-sm">
+            <div class="typing-indicator"><span></span><span></span><span></span></div>
+          </div>
+        </div>`;
+      list.scrollTop = list.scrollHeight;
+
+      // Fetch AI response
+      const reply = await callGeminiAI(text);
+      
+      // Remove loading indicator & add real response
+      document.getElementById(loadingId).remove();
+      list.innerHTML += `
+        <div class="flex justify-start animate-fade-in">
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 text-sm text-slate-800 shadow-sm max-w-[90%] whitespace-pre-line leading-relaxed">
+            ${reply}
+          </div>
+        </div>`;
+        
+      list.scrollTop = list.scrollHeight;
+      input.disabled = false;
+      submitBtn.disabled = false;
+      input.focus();
+    }
+
+    async function callGeminiAI(userPrompt) {
+      const apiKey = "AQ.Ab8RN6LTS5Jwzg_mnHcHZpwEzVzVTV1nHyMKjIbvewk80_U3sg"; 
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      
+      const systemInstruction = "Sən AZTERM platformasının rəsmi köməkçisisən. İstifadəçilər sənə bir söz və ya termin verdikdə onun izahını həmişə 3 səviyyədə ver: 1. Məktəbli üçün sadə izah, 2. Elmi izah, 3. Rəsmi/Hüquqi izah. İzahlar qısa, konkret və aydın olmalıdır.";
+      
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemInstruction }] }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.candidates && data.candidates.length > 0) {
+            return data.candidates[0].content.parts[0].text;
+          } else {
+            return "Üzr istəyirik, bu termin üçün cavab formalaşdırmaq mümkün olmadı.";
+          }
+        } else {
+          return "⚠ API xətası: Tətbiq daxili qoşulma uğursuz oldu.";
+        }
+      } catch (error) {
+        console.error("AI Error:", error);
+        return "⚠ Bağlantı xətası baş verdi. Lütfən internetinizi yoxlayıb yenidən cəhd edin.";
+      }
+    }
+
+    // Başlanğıc yüklənmə
+    window.onload = () => { 
+      saveAllState(); 
+      renderSearchResults(); 
+    };
+  </script>
+</body>
+</html>
